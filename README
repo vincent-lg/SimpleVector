@@ -1,4 +1,4 @@
-This project contains fast and basic classes, mostly writen in C,
+This project contains fast and basic classes, mostly written in C,
 for the Python language.  These classes are provided to quickly create
 and calculate generic geometric operations and the first class is designed
 to represent a three-dimensional vector.
