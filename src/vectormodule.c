@@ -30,7 +30,7 @@ Vector_init(Vector *self, PyObject *args, PyObject *kwds)
 
     static char *kwlist[] = {"x", "y", "z", NULL};
 
-    if (! PyArg_ParseTupleAndKeywords(args, kwds, "|fff", kwlist,
+    if (! PyArg_ParseTupleAndKeywords(args, kwds, "|ddd", kwlist,
                                       &self->x, &self->y, &self->z))
         return -1;
 
@@ -48,7 +48,34 @@ static PyMemberDef Vector_members[] = {
     {NULL}  /* Sentinel */
 };
 
+static PyObject *
+Vector_mag(Vector* self)
+{
+    return PyFloat_FromDouble(sqrt(self->x * self->x + self->y * self->y + self->z * self->z));
+}
+
+static PyObject *
+Vector_repr(Vector* self)
+{
+    PyObject* x = PyFloat_FromDouble(self->x);
+    PyObject* y = PyFloat_FromDouble(self->y);
+    PyObject* z = PyFloat_FromDouble(self->z);
+    return PyUnicode_FromFormat("<Vector x=%S y=%S z=%S>", x, y, z);
+}
+
+static PyObject *
+Vector_str(Vector* self)
+{
+    PyObject* x = PyFloat_FromDouble(self->x);
+    PyObject* y = PyFloat_FromDouble(self->y);
+    PyObject* z = PyFloat_FromDouble(self->z);
+    return PyUnicode_FromFormat("Vector(%S, %S, %S)", x, y, z);
+}
+
 static PyMethodDef Vector_methods[] = {
+    {"mag", (PyCFunction)Vector_mag, METH_NOARGS,
+     "Return the vector magnitude"
+    },
     {NULL}  /* Sentinel */
 };
 
@@ -62,13 +89,13 @@ static PyTypeObject VectorType = {
     0,                         /* tp_getattr */
     0,                         /* tp_setattr */
     0,                         /* tp_reserved */
-    0,                         /* tp_repr */
+    Vector_repr,                         /* tp_repr */
     0,                         /* tp_as_number */
     0,                         /* tp_as_sequence */
     0,                         /* tp_as_mapping */
     0,                         /* tp_hash  */
     0,                         /* tp_call */
-    0,                         /* tp_str */
+    Vector_str,                         /* tp_str */
     0,                         /* tp_getattro */
     0,                         /* tp_setattro */
     0,                         /* tp_as_buffer */
