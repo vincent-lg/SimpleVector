@@ -49,10 +49,47 @@ static PyMemberDef Vector_members[] = {
 };
 
 static PyObject *
-Vector_mag(Vector* self)
+Vector_getmag(Vector* self, void *closure)
 {
     return PyFloat_FromDouble(sqrt(self->x * self->x + self->y * self->y + self->z * self->z));
 }
+
+static int
+Vector_setmag(Vector *self, PyObject *value, void *closure)
+{
+    double mag;
+    double oldmag;
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete the mag attribute");
+        return -1;
+    }
+
+    oldmag = sqrt(self->x * self->x + self->y * self->y + self->z * self->z);
+    if (oldmag == 0) {
+        PyErr_SetString(PyExc_TypeError, "Cannot set a vector with a null magnitude");
+        return -1;
+    }
+
+    mag = PyFloat_AsDouble(value);
+    if(PyErr_Occurred())
+    {
+        PyErr_SetString(PyExc_TypeError, "The mag attribute must be a float");
+        return -1;
+    }
+
+    self->x = self->x / oldmag * mag;
+    self->y = self->y / oldmag * mag;
+    self->z = self->z / oldmag * mag;
+    return 0;
+}
+
+static PyGetSetDef Vector_getseters[] = {
+    {"mag",
+     (getter)Vector_getmag, (setter)Vector_setmag,
+     "vector magnitude",
+     NULL},
+    {NULL}  /* Sentinel */
+};
 
 static PyObject *
 Vector_repr(Vector* self)
@@ -73,9 +110,6 @@ Vector_str(Vector* self)
 }
 
 static PyMethodDef Vector_methods[] = {
-    {"mag", (PyCFunction)Vector_mag, METH_NOARGS,
-     "Return the vector magnitude"
-    },
     {NULL}  /* Sentinel */
 };
 
@@ -110,7 +144,7 @@ static PyTypeObject VectorType = {
     0,                         /* tp_iternext */
     Vector_methods,             /* tp_methods */
     Vector_members,             /* tp_members */
-    0,                         /* tp_getset */
+    Vector_getseters,                         /* tp_getset */
     0,                         /* tp_base */
     0,                         /* tp_dict */
     0,                         /* tp_descr_get */
