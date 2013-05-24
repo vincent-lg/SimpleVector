@@ -1,6 +1,11 @@
 #include <Python.h>
 #include "structmember.h"
 
+// Constant for PI (other method would be welcome)
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 typedef struct {
     PyObject_HEAD
     double x;
@@ -83,10 +88,48 @@ Vector_setmag(Vector *self, PyObject *value, void *closure)
     return 0;
 }
 
+static PyObject *
+Vector_getargument(Vector* self, void *closure)
+{
+    double x = self->x;
+    double y = self->y;
+    double argument;
+    if (x > 0)
+    {
+        argument = atan(y / x);
+        if (argument < 0)
+        {
+            argument = 2 * M_PI + argument;
+        }
+    }
+    else if (x < 0)
+    {
+        argument = M_PI + atan(y / x);
+    }
+    else if (y > 0)
+    {
+        argument = M_PI / 2.0;
+    }
+    else if (y < 0)
+    {
+        argument = M_PI * 1.5;
+    }
+    else
+    {
+        argument = 0.0;
+    }
+
+    return PyFloat_FromDouble(argument);
+}
+
 static PyGetSetDef Vector_getseters[] = {
     {"mag",
      (getter)Vector_getmag, (setter)Vector_setmag,
      "vector magnitude",
+     NULL},
+    {"argument",
+     (getter)Vector_getargument, NULL,
+     "vector 2D argument, between 0 and 2 * PI",
      NULL},
     {NULL}  /* Sentinel */
 };
