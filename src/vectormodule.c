@@ -124,9 +124,43 @@ vector_around_x(Vector *self, PyObject *args)
     return Py_BuildValue("");
 }
 
+static PyObject *
+vector_around_y(Vector *self, PyObject *args)
+{
+    const double angle;
+    double x, z;
+    if (!PyArg_ParseTuple(args, "d", &angle))
+        return NULL;
+
+    x = self->x;
+    z = self->z;
+    self->x = x * cos(angle) + z * sin(angle);
+    self->z = x * sin(angle) + z * cos(angle);
+    return Py_BuildValue("");
+}
+
+static PyObject *
+vector_around_z(Vector *self, PyObject *args)
+{
+    const double angle;
+    double x, y;
+    if (!PyArg_ParseTuple(args, "d", &angle))
+        return NULL;
+
+    x = self->x;
+    y = self->y;
+    self->x = x * cos(angle) + y * sin(angle);
+    self->y = -1 * x * sin(angle) + y * cos(angle);
+    return Py_BuildValue("");
+}
+
 static PyMethodDef Vector_methods[] = {
     {"around_x",   vector_around_x,  METH_VARARGS,
      "Turn around the X axis.  Give the angle as radians."},
+    {"around_y",   vector_around_y,  METH_VARARGS,
+     "Turn around the Y axis.  Give the angle as radians."},
+    {"around_z",   vector_around_z,  METH_VARARGS,
+     "Turn around the Z axis.  Give the angle as radians."},
     {NULL}  /* Sentinel */
 };
 
