@@ -109,7 +109,24 @@ Vector_str(Vector* self)
     return PyUnicode_FromFormat("Vector(%S, %S, %S)", x, y, z);
 }
 
+static PyObject *
+vector_around_x(Vector *self, PyObject *args)
+{
+    const double angle;
+    double y, z;
+    if (!PyArg_ParseTuple(args, "d", &angle))
+        return NULL;
+
+    y = self->y;
+    z = self->z;
+    self->y = y * cos(angle) - z * sin(angle);
+    self->z = y * sin(angle) + z * cos(angle);
+    return Py_BuildValue("");
+}
+
 static PyMethodDef Vector_methods[] = {
+    {"around_x",   vector_around_x,  METH_VARARGS,
+     "Turn around the X axis.  Give the angle as radians."},
     {NULL}  /* Sentinel */
 };
 
