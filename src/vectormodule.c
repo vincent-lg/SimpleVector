@@ -2,6 +2,8 @@
 #include <Python.h>
 #include "structmember.h"
 
+static PyTypeObject VectorType;
+
 typedef struct {
     PyObject_HEAD
     double x;
@@ -220,6 +222,63 @@ Vector_richcmp(PyObject *obj1, PyObject *obj2, int op)
     return result;
 }
 
+static PyObject *
+Vector_add(PyObject *self, PyObject *other)
+{
+    Vector *vector1, *vector2, *result;
+    double x, y, z;
+
+    vector1 = (Vector *)self;
+    vector2 = (Vector *)other;
+    x = vector1->x + vector2->x;
+    y = vector1->y + vector2->y;
+    z = vector1->z + vector2->z;
+    result = PyObject_CallObject((PyObject *) &VectorType, NULL);
+    if(result == NULL)
+        return NULL;
+
+    result->x = x;
+    result->y = y;
+    result->z = z;
+    return (PyObject *)result;
+}
+
+static PyNumberMethods vector_as_number = {
+    Vector_add,          /*nb_add*/
+    0,          /*nb_subtract*/
+    0,          /*nb_multiply*/
+    0,          /*nb_remainder*/
+    0,                  /*nb_divmod*/
+    0,                  /*nb_power*/
+    0,                  /*nb_negative*/
+    0,                  /*nb_positive*/
+    0,                  /*nb_absolute*/
+    0,                  /*nb_bool*/
+    0,                  /*nb_invert*/
+    0,                  /*nb_lshift*/
+    0,                  /*nb_rshift*/
+    0,                  /*nb_and*/
+    0,                  /*nb_xor*/
+    0,                  /*nb_or*/
+    0,                  /*nb_int*/
+    0,                  /*nb_reserved*/
+    0,                  /*nb_float*/
+    0,                  /* nb_inplace_add */
+    0,                  /* nb_inplace_subtract */
+    0,                  /* nb_inplace_multiply */
+    0,                  /* nb_inplace_remainder */
+    0,                  /* nb_inplace_power */
+    0,                  /* nb_inplace_lshift */
+    0,                  /* nb_inplace_rshift */
+    0,                  /* nb_inplace_and */
+    0,                  /* nb_inplace_xor */
+    0,                  /* nb_inplace_or */
+    0,                  /* nb_floor_divide */
+    0,                  /* nb_true_divide */
+    0,                  /* nb_inplace_floor_divide */
+    0,                  /* nb_inplace_true_divide */
+};
+
 static PyMethodDef Vector_methods[] = {
     {"around_x",   vector_around_x,  METH_VARARGS,
      "Turn around the X axis.  Give the angle as radians."},
@@ -241,7 +300,7 @@ static PyTypeObject VectorType = {
     0,                         /* tp_setattr */
     0,                         /* tp_reserved */
     Vector_repr,                         /* tp_repr */
-    0,                         /* tp_as_number */
+    &vector_as_number,                         /* tp_as_number */
     0,                         /* tp_as_sequence */
     0,                         /* tp_as_mapping */
     0,                         /* tp_hash  */
