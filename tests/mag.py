@@ -3,14 +3,18 @@
 from math import *
 import unittest
 
+from tests.base import BaseTestCase
 from vector import Vector
 
-class Mag(unittest.TestCase):
+class Mag(unittest.TestCase, BaseTestCase):
 
     """Check the consistency of the mag attribute.
 
     Tests (methods):
         test_set -- try to set the vector's mag
+        test_around_x -- turn around the X axis
+        turn_around_y -- turn around the Y axis
+        turn_around_z -- turn around the Z axis
 
     """
 
@@ -40,12 +44,3 @@ class Mag(unittest.TestCase):
         old_mag = vector.mag
         vector.around_z(pi / 2)
         self.check_almost_equal(vector.mag, old_mag)
-
-    def check_almost_equal(self, value1, value2):
-        """Check that two values are AlMOST equal.
-
-        Try to round the tested values.
-
-        """
-        self.assertEqual(round(value1, 2), round(value2, 2))
-

@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <Python.h>
 #include "structmember.h"
 
@@ -83,10 +84,49 @@ Vector_setmag(Vector *self, PyObject *value, void *closure)
     return 0;
 }
 
+static PyObject *
+Vector_getargument(Vector* self, void *closure)
+{
+    double x, y, ret;
+    x = self->x;
+    y = self->y;
+    if(x > 0)
+    {
+        ret = atan(y / x);
+    }
+    else if(x < 0)
+    {
+        ret = M_PI + atan(y / x);
+    }
+    else if(y > 0)
+    {
+        ret = M_PI / 2;
+    }
+    else if(y < 0)
+    {
+        ret = -M_PI / 2;
+    }
+    else
+    {
+        ret = 0;
+    }
+
+    if(ret < 0)
+    {
+       ret = M_PI * 2 - ret;
+    }
+
+    return PyFloat_FromDouble(ret);
+}
+
 static PyGetSetDef Vector_getseters[] = {
     {"mag",
      (getter)Vector_getmag, (setter)Vector_setmag,
      "vector magnitude",
+     NULL},
+    {"argument",
+     (getter)Vector_getargument, NULL,
+     "vector 2D argument",
      NULL},
     {NULL}  /* Sentinel */
 };
@@ -154,6 +194,32 @@ vector_around_z(Vector *self, PyObject *args)
     return Py_BuildValue("");
 }
 
+static PyObject *
+Vector_richcmp(PyObject *obj1, PyObject *obj2, int op)
+{
+    PyObject *result;
+    Vector *vector1, *vector2;
+    double value, x1, x2, y1, y2, z1, z2;
+
+    vector1 = (Vector *)obj1;
+    vector2 = (Vector *)obj2;
+    x1 = vector1->x;
+    x2 = vector2->x;
+    y1 = vector1->y;
+    y2 = vector2->y;
+    z1 = vector1->z;
+    z2 = vector2->z;
+
+    switch (op) {
+        case Py_EQ: value = x1 == x2 && y1 == y2 && z1 == z2; break;
+        case Py_NE: value = x1 != x2 || y1 != y2 || z1 != z2; break;
+        default: return Py_NotImplemented; break;
+    }
+    result = value ? Py_True : Py_False;
+    Py_INCREF(result);
+    return result;
+}
+
 static PyMethodDef Vector_methods[] = {
     {"around_x",   vector_around_x,  METH_VARARGS,
      "Turn around the X axis.  Give the angle as radians."},
@@ -189,7 +255,7 @@ static PyTypeObject VectorType = {
     "3D vector objects",           /* tp_doc */
     0,                         /* tp_traverse */
     0,                         /* tp_clear */
-    0,                         /* tp_richcompare */
+    Vector_richcmp,                         /* tp_richcompare */
     0,                         /* tp_weaklistoffset */
     0,                         /* tp_iter */
     0,                         /* tp_iternext */
