@@ -243,14 +243,109 @@ Vector_add(PyObject *self, PyObject *other)
     return (PyObject *)result;
 }
 
+static PyObject *
+Vector_sub(PyObject *self, PyObject *other)
+{
+    Vector *vector1, *vector2, *result;
+    double x, y, z;
+
+    vector1 = (Vector *)self;
+    vector2 = (Vector *)other;
+    x = vector1->x - vector2->x;
+    y = vector1->y - vector2->y;
+    z = vector1->z - vector2->z;
+    result = PyObject_CallObject((PyObject *) &VectorType, NULL);
+    if(result == NULL)
+        return NULL;
+
+    result->x = x;
+    result->y = y;
+    result->z = z;
+    return (PyObject *)result;
+}
+
+static PyObject *
+Vector_mul(PyObject *self, PyObject *value)
+{
+    Vector *vector, *result;
+    double x, y, z, times;
+
+    times = PyFloat_AsDouble(value);
+    if(PyErr_Occurred())
+    {
+        PyErr_SetString(PyExc_TypeError, "can only multiply by a number");
+        return NULL;
+    }
+
+    vector = (Vector *)self;
+    x = vector->x * times;
+    y = vector->y * times;
+    z = vector->z * times;
+    result = PyObject_CallObject((PyObject *) &VectorType, NULL);
+    if(result == NULL)
+        return NULL;
+
+    result->x = x;
+    result->y = y;
+    result->z = z;
+    return (PyObject *)result;
+}
+
+static PyObject *
+Vector_trueDivide(PyObject *self, PyObject *value)
+{
+    Vector *vector, *result;
+    double x, y, z, divided;
+
+    divided = PyFloat_AsDouble(value);
+    if(PyErr_Occurred())
+    {
+        PyErr_SetString(PyExc_TypeError, "can only divide by a number");
+        return NULL;
+    }
+
+    vector = (Vector *)self;
+    x = vector->x / divided;
+    y = vector->y / divided;
+    z = vector->z / divided;
+    result = PyObject_CallObject((PyObject *) &VectorType, NULL);
+    if(result == NULL)
+        return NULL;
+
+    result->x = x;
+    result->y = y;
+    result->z = z;
+    return (PyObject *)result;
+}
+
+static PyObject *
+Vector_neg(PyObject *self)
+{
+    Vector *vector, *result;
+    double x, y, z;
+
+    vector = (Vector *)self;
+    x = -vector->x;
+    y = -vector->y;
+    z = -vector->z;
+    result = PyObject_CallObject((PyObject *) &VectorType, NULL);
+    if(result == NULL)
+        return NULL;
+
+    result->x = x;
+    result->y = y;
+    result->z = z;
+    return (PyObject *)result;
+}
+
 static PyNumberMethods vector_as_number = {
     Vector_add,          /*nb_add*/
-    0,          /*nb_subtract*/
-    0,          /*nb_multiply*/
+    Vector_sub,          /*nb_subtract*/
+    Vector_mul,          /*nb_multiply*/
     0,          /*nb_remainder*/
     0,                  /*nb_divmod*/
     0,                  /*nb_power*/
-    0,                  /*nb_negative*/
+    Vector_neg,                  /*nb_negative*/
     0,                  /*nb_positive*/
     0,                  /*nb_absolute*/
     0,                  /*nb_bool*/
@@ -274,7 +369,7 @@ static PyNumberMethods vector_as_number = {
     0,                  /* nb_inplace_xor */
     0,                  /* nb_inplace_or */
     0,                  /* nb_floor_divide */
-    0,                  /* nb_true_divide */
+    Vector_trueDivide,  /* nb_true_divide */
     0,                  /* nb_inplace_floor_divide */
     0,                  /* nb_inplace_true_divide */
 };
