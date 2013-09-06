@@ -51,10 +51,16 @@ static PyMemberDef Vector_members[] = {
     {NULL}  /* Sentinel */
 };
 
+static double
+Vector_getdoublemag(Vector* self)
+{
+    return sqrt(self->x * self->x + self->y * self->y + self->z * self->z);
+}
+
 static PyObject *
 Vector_getmag(Vector* self, void *closure)
 {
-    return PyFloat_FromDouble(sqrt(self->x * self->x + self->y * self->y + self->z * self->z));
+    return PyFloat_FromDouble(Vector_getdoublemag(self));
 }
 
 static int
@@ -86,8 +92,8 @@ Vector_setmag(Vector *self, PyObject *value, void *closure)
     return 0;
 }
 
-static PyObject *
-Vector_getargument(Vector* self, void *closure)
+static double
+Vector_getdoubleargument(Vector* self)
 {
     double x, y, ret;
     x = self->x;
@@ -117,8 +123,13 @@ Vector_getargument(Vector* self, void *closure)
     {
        ret = M_PI * 2 - ret;
     }
+    return ret;
+}
 
-    return PyFloat_FromDouble(ret);
+static PyObject *
+Vector_getargument(Vector* self, void *closure)
+{
+    return PyFloat_FromDouble(Vector_getdoubleargument(self));
 }
 
 static PyGetSetDef Vector_getseters[] = {
@@ -194,6 +205,58 @@ vector_around_z(Vector *self, PyObject *args)
     self->x = x * cos(angle) + y * sin(angle);
     self->y = -1 * x * sin(angle) + y * cos(angle);
     return Py_BuildValue("");
+}
+
+static PyObject *
+Vector_distance(Vector *self, PyObject *args)
+{
+    Vector *a, *b, *c, *ab, *ac;
+    double d, alpha, beta_ab, beta_ac, beta, mc_x, mc_z;
+    if (!PyArg_ParseTuple(args, "OO", &b, &c))
+        return NULL;
+
+    a = self;
+    b = (Vector *)b;
+    c = (Vector *)c;
+    ab = PyObject_CallObject((PyObject *) &VectorType, NULL);
+    ab->x = b->x - a->x;
+    ab->y = b->y - a->y;
+    ab->z = b->z - a->z;
+    ac = PyObject_CallObject((PyObject *) &VectorType, NULL);
+    ac->x = c->x - a->x;
+    ac->y = c->y - a->y;
+    ac->z = c->z - a->z;
+    d = 0;
+    alpha = Vector_getdoubleargument(ab) - Vector_getdoubleargument(ac);
+    if(ab->x != 0 || ab->y != 0)
+    {
+        beta_ab = atan(ab->z / sqrt(ab->x * ab->x + ab->y * ab->y));
+    }
+    else if(ab->z < 0)
+    {
+        beta_ab = -M_PI;
+    }
+    else
+    {
+        beta_ab = M_PI;
+    }
+    if(ac->x != 0 || ac->y != 0)
+    {
+        beta_ac = atan(ac->z / sqrt(ac->x * ac->x + ac->y * ac->y));
+    }
+    else if(ac->z < 0)
+    {
+        beta_ac = -M_PI;
+    }
+    else
+    {
+        beta_ac = M_PI;
+    }
+    beta = beta_ab - beta_ac;    
+    mc_x = Vector_getdoublemag(ac) * sin(alpha);
+    mc_z = Vector_getdoublemag(ac) * sin(beta);
+    d = sqrt(mc_x * mc_x + mc_z * mc_z);
+    return PyFloat_FromDouble(d);
 }
 
 static PyObject *
@@ -381,6 +444,8 @@ static PyMethodDef Vector_methods[] = {
      "Turn around the Y axis.  Give the angle as radians."},
     {"around_z",   vector_around_z,  METH_VARARGS,
      "Turn around the Z axis.  Give the angle as radians."},
+    {"distance",   Vector_distance,  METH_VARARGS,
+     "a.distance(b, c) -- return the distance between c and AB"},
     {NULL}  /* Sentinel */
 };
 
