@@ -4,6 +4,25 @@
 
 static PyTypeObject VectorType;
 
+/* Module functions */
+
+static PyObject *
+vector_mag(PyObject *self, PyObject *args)
+{
+    const double ax, ay, az, bx, by, bz;
+    double x, y, z;
+
+    if (!PyArg_ParseTuple(args, "dddddd", &ax, &ay, &az, &bx, &by, &bz))
+        return NULL;
+
+    x = ax - bx;
+    y = ay - by;
+    z = az - bz;
+    return PyFloat_FromDouble(sqrt(x * x + y * y + z * z));
+}
+
+/* Vector class */
+
 typedef struct {
     PyObject_HEAD
     double x;
@@ -252,7 +271,7 @@ Vector_distance(Vector *self, PyObject *args)
     {
         beta_ac = M_PI;
     }
-    beta = beta_ab - beta_ac;    
+    beta = beta_ab - beta_ac;
     mc_x = Vector_getdoublemag(ac) * sin(alpha);
     mc_z = Vector_getdoublemag(ac) * sin(beta);
     d = sqrt(mc_x * mc_x + mc_z * mc_z);
@@ -491,12 +510,18 @@ static PyTypeObject VectorType = {
     Vector_new,                 /* tp_new */
 };
 
+static PyMethodDef VectorMethods[] = {
+    {"mag",  vector_mag, METH_VARARGS,
+     "Return the magnitude between two points"},
+    {NULL, NULL, 0, NULL}        /* Sentinel */
+};
+
 static PyModuleDef vectormodule = {
     PyModuleDef_HEAD_INIT,
     "vector",
     "Basic module for 3D vectors",
     -1,
-    NULL, NULL, NULL, NULL, NULL
+    VectorMethods
 };
 
 PyMODINIT_FUNC
