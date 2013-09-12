@@ -138,10 +138,6 @@ Vector_getdoubleargument(Vector* self)
         ret = 0;
     }
 
-    if(ret < 0)
-    {
-       ret = M_PI * 2 - ret;
-    }
     return ret;
 }
 
