@@ -21,6 +21,58 @@ vector_mag(PyObject *self, PyObject *args)
     return PyFloat_FromDouble(sqrt(x * x + y * y + z * z));
 }
 
+static PyObject *
+vector_in_rectangle(PyObject *self, PyObject *args)
+{
+    PyObject* result;
+    const double ax, ay, az, bx, by, bz, cx, cy, cz, precision;
+    double value, nx, ny, nz, xx, xy, xz;
+
+    if (!PyArg_ParseTuple(args, "dddddddddd", &ax, &ay, &az, &bx, &by, &bz, &cx, &cy, &cz, &precision))
+        return NULL;
+
+    if(ax < bx)
+    {
+        nx = ax;
+        xx = bx;
+    }
+    else
+    {
+        nx = bx;
+        xx = ax;
+    }
+    if(ay < by)
+    {
+        ny = ay;
+        xy = by;
+    }
+    else
+    {
+        ny = by;
+        xy = ay;
+    }
+    if(az < bz)
+    {
+        nz = az;
+        xz = bz;
+    }
+    else
+    {
+        nz = bz;
+        xz = az;
+    }
+    nx -= precision;
+    xx += precision;
+    ny -= precision;
+    xy += precision;
+    nz -= precision;
+    xz += precision;
+    value = (cx <= xx && cx >= nx) && (cy <= xy && cy >= ny) && (cy <= xy && cy >= ny);
+    result = value ? Py_True : Py_False;
+    Py_INCREF(result);
+    return result;
+}
+
 /* Vector class */
 
 typedef struct {
@@ -509,6 +561,8 @@ static PyTypeObject VectorType = {
 static PyMethodDef VectorMethods[] = {
     {"mag",  vector_mag, METH_VARARGS,
      "Return the magnitude between two points"},
+    {"in_rectangle",  vector_in_rectangle, METH_VARARGS,
+     "Return True if C in the rectangle A->B."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
