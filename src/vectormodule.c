@@ -4,7 +4,42 @@
 
 static PyTypeObject VectorType;
 
+/* External and unreachable functions */
+static long ccw(double ax, double ay, double bx, double by, double cx, double cy)
+{
+    double b1 = (cy - ay) * (bx - ax);
+    double b2 = (by - ax) * (cx - ax);
+    if(b1 > b2)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 /* Module functions */
+
+static PyObject *
+vector_intersect(PyObject *self, PyObject *args)
+{
+    const double ax, ay, bx, by, cx, cy, dx, dy;
+    long boolean;
+
+    if (!PyArg_ParseTuple(args, "dddddddd", &ax, &ay, &bx, &by, &cx, &cy, &dx, &dy))
+        return NULL;
+
+    if(ccw(ax, ay, cx, cy, dx, dy) != ccw(bx, by, cx, cy, dx, dy) && ccw(ax, ay, bx, by, cx, cy) != ccw(ax, ay, bx, by, dx, dy))
+    {
+        boolean = 1;
+    }
+    else
+    {
+        boolean = 0;
+    }
+    return PyBool_FromLong(boolean);
+}
 
 static PyObject *
 vector_mag(PyObject *self, PyObject *args)
@@ -561,6 +596,8 @@ static PyTypeObject VectorType = {
 static PyMethodDef VectorMethods[] = {
     {"mag",  vector_mag, METH_VARARGS,
      "Return the magnitude between two points"},
+    {"intersect",  vector_intersect, METH_VARARGS,
+     "Return True if two segments intersect"},
     {"in_rectangle",  vector_in_rectangle, METH_VARARGS,
      "Return True if C in the rectangle A->B."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
